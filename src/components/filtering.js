@@ -22,9 +22,41 @@ export function initFiltering(elements, indexes) {
   return (data, state, action) => {
     console.log(action);
 
+    // Подготовка состояния для фильтрации
+    const prepareState = (rawState) => {
+      // Создаём копию состояния
+      const filteredState = { ...rawState };
+      
+      // Обрабатываем диапазон totalFrom/totalTo
+      const totalFrom = rawState.totalFrom;
+      const totalTo = rawState.totalTo;
+      
+      // Преобразуем в числа, если возможно
+      const parseNumber = (val) => {
+        if (val === '' || val === null || val === undefined) return null;
+        const num = Number(val);
+        return isNaN(num) ? null : num;
+      };
+      
+      const fromNum = parseNumber(totalFrom);
+      const toNum = parseNumber(totalTo);
+      
+      // Если хотя бы одно значение задано, создаём массив диапазона
+      if (fromNum !== null || toNum !== null) {
+        filteredState.total = [fromNum, toNum];
+      }
+      
+      // Удаляем исходные поля, чтобы они не мешали фильтрации
+      delete filteredState.totalFrom;
+      delete filteredState.totalTo;
+      
+      return filteredState;
+    };
+
     // Если action отсутствует или не является объектом — сразу выполняем фильтрацию
     if (!action || typeof action !== "object") {
-      return data.filter((row) => compare(row, state));
+      const filteredState = prepareState(state);
+      return data.filter((row) => compare(row, filteredState));
     }
 
     // Обрабатываем действие «clear»
@@ -39,6 +71,7 @@ export function initFiltering(elements, indexes) {
       }
     }
 
-    return data.filter((row) => compare(row, state));
+    const filteredState = prepareState(state);
+    return data.filter((row) => compare(row, filteredState));
   };
 }
