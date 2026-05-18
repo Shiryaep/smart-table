@@ -21,8 +21,14 @@ const API = initData(sourceData);
  */
 function collectState() {
   const state = processFormData(new FormData(sampleTable.container));
-  const rowsPerPage = parseInt(state.rowsPerPage); // приведём количество страниц к числу
-  const page = parseInt(state.page ?? 1); // номер страницы по умолчанию 1 и тоже число
+  let rowsPerPage = parseInt(state.rowsPerPage); // приведём количество страниц к числу
+  if (isNaN(rowsPerPage) || rowsPerPage <= 0) {
+    rowsPerPage = 10; // значение по умолчанию
+  }
+  let page = parseInt(state.page ?? 1); // номер страницы по умолчанию 1 и тоже число
+  if (isNaN(page) || page < 1) {
+    page = 1;
+  }
 
   return {
     ...state,
@@ -37,7 +43,7 @@ function collectState() {
  */
 async function render(action) {
   let state = collectState(); // состояние полей из таблицы
-  let query = {};
+  let query = {}; // здесь будут формироваться параметры запроса
 
   // query = applySearching(query, state, action);
 
@@ -45,11 +51,12 @@ async function render(action) {
 
   // query = applySorting(query, state, action);
 
-  // query = applyPagination(query, state, action);
+  query = applyPagination(query, state, action); // обновляем query
 
   // Получение данных из API
-  const { total, items } = await API.getRecords(query);
+  const { total, items } = await API.getRecords(query); // запрашиваем данные с собранными параметрами
 
+  updatePagination(total, query); // перерисовываем пагинатор
   sampleTable.render(items);
 }
 
@@ -63,7 +70,7 @@ const sampleTable = initTable(
   render,
 );
 
-const applyPagination = initPagination(
+const { applyPagination, updatePagination } = initPagination(
   sampleTable.pagination.elements, // передаём сюда элементы пагинации, найденные в шаблоне
   (el, page, isCurrent) => {
     // и колбэк, чтобы заполнять кнопки страниц данными
