@@ -47,7 +47,7 @@ async function render(action) {
 
   // query = applySearching(query, state, action);
 
-  // query = applyFiltering(query, state, action);
+  query = applyFiltering(query, state, action);
 
   // query = applySorting(query, state, action);
 
@@ -90,10 +90,9 @@ const applySorting = initSorting([
   sampleTable.header.elements.sortByTotal,
 ]);
 
-// const applyFiltering = initFiltering(sampleTable.filter.elements, {
-//   // передаём элементы фильтра
-//   searchBySeller: indexes.sellers, // для элемента с именем searchBySeller устанавливаем массив продавцов
-// });
+const { applyFiltering, updateIndexes } = initFiltering(
+  sampleTable.filter.elements,
+);
 
 const applySearching = initSearching("search");
 
@@ -102,6 +101,10 @@ const applySearching = initSearching("search");
  */
 async function init() {
   const indexes = await API.getIndexes();
+
+  updateIndexes(sampleTable.filter.elements, {
+    searchBySeller: indexes.sellers,
+  });
 }
 
 const appRoot = document.querySelector("#app");
