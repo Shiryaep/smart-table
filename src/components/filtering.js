@@ -21,15 +21,16 @@ export function initFiltering(elements) {
       return query;
     }
     Object.keys(elements).forEach((key) => {
-      if (elements[key]) {
-        if (
-          ["INPUT", "SELECT"].includes(elements[key].tagName) &&
-          elements[key].value
-        ) {
-          // ищем поля ввода в фильтре с непустыми данными
-          filter[`filter[${elements[key].name}]`] = elements[key].value; // чтобы сформировать в query вложенный объект фильтра
-        }
-      }
+      const element = elements[key];
+      if (!element) return;
+      const tagName = element.tagName;
+      if (!["INPUT", "SELECT"].includes(tagName)) return;
+      const value = element.value;
+      if (!value) return;
+      const name = element.name;
+      if (!name) return;
+      // ищем поля ввода в фильтре с непустыми данными
+      filter[`filter[${name}]`] = value; // чтобы сформировать в query вложенный объект фильтра
     });
 
     return Object.keys(filter).length
